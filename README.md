@@ -15,7 +15,7 @@ Enhance video with AV-Viewer in combination with this EDOF filter (Extended Dept
 3. Restart your AV-Viewer application.
 
 ```bash
-git clone 
+git clone git@github.com:dirkjanbuter/AV-Filter-EDOF.git
 cd AV-Filter-EDOF
 make
 ```
