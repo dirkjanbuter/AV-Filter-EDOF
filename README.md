@@ -15,6 +15,7 @@ Enhance video with AV-Viewer in combination with this EDOF filter (Extended Dept
 3. Restart your AV-Viewer application.
 
 ```bash
+mkdir build
 git clone git@github.com:dirkjanbuter/AV-Filter-EDOF.git
 cd AV-Filter-EDOF
 make
@@ -27,6 +28,7 @@ make
 3. Preview the changes in real-time to visualize the impact on your AV content.
 
 ```bash
+cd ../build
 ./av-viewer 640 360 30 filter_edof.so ffffffff -
 ```
 ```bash
