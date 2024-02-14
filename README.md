@@ -1,6 +1,6 @@
 # AV-Filter-EDOF
 
-Enhance the visual aesthetics of your AV Viewer experience with this EDOF (Extended Depth of Focus) filter! Get more digital focus while using lenses with a narrow focus area. For use in microscope or photography.
+Enhance video with AV-Viewer in combination with this EDOF filter (Extended Depth of Focus)! Get more digital focus when using lenses with a narrow focus area. For use in microscope or photography.
 
 ## key Features
 
