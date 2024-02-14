@@ -27,10 +27,10 @@ make
 3. Preview the changes in real-time to visualize the impact on your AV content.
 
 ```bash
-av-viewer 640 360 30 filter_edof.so ffffffff -
+./av-viewer 640 360 30 filter_edof.so ffffffff -
 ```
 ```bash
-av-viewer 640 360 30 filter_player.so ffffffff filename.mp4 filter_edof.so ffffffff -
+./av-viewer 640 360 30 filter_player.so ffffffff filename.mp4 filter_edof.so ffffffff -
 ```
 
 ## Compatibility
