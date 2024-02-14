@@ -29,10 +29,10 @@ make
 
 ```bash
 cd ../build
-./av-viewer 640 360 30 filter_edof.so ffffffff -
+./av-viewer 640 360 30 ./filter_edof.so ffffffff -
 ```
 ```bash
-./av-viewer 640 360 30 filter_player.so ffffffff filename.mp4 filter_edof.so ffffffff -
+./av-viewer 640 360 30 ./filter_player.so ffffffff filename.mp4 ./filter_edof.so ffffffff -
 ```
 
 ## Compatibility
