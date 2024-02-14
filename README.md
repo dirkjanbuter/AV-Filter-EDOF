@@ -2,7 +2,7 @@
 
 Enhance video with AV-Viewer in combination with this EDOF filter (Extended Depth of Focus)! Get more digital focus when using lenses with a narrow focus area. For use in microscopy or photography.
 
-## key Features
+## Key Features
 
 1. Increases perceived depth of field: Makes foreground and background elements appear sharper and in focus compared to a standard filter.
 2. Improved image clarity: Enhances details and textures across the entire image.
