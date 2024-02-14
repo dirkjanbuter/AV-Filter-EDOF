@@ -14,11 +14,24 @@ Enhance video with AV-Viewer in combination with this EDOF filter (Extended Dept
 2. Place the files in the appropriate directory within your AV-Viewer's plugin structure (refer to your AV-Viewer's documentation for specific instructions).
 3. Restart your AV-Viewer application.
 
+```bash
+git clone 
+cd AV-Filter-EDOF
+make
+```
+
 ## Usage
 
 1. Access the plugin's interface or configuration options within your AV-Viewer.
 2. Adjust the available controls to personalize the EDOF effect according to your desired outcome.
 3. Preview the changes in real-time to visualize the impact on your AV content.
+
+```bash
+av-viewer 640 360 30 filter_edof.so ffffffff -
+```
+```bash
+av-viewer 640 360 30 filter_player.so ffffffff filename.mp4 filter_edof.so ffffffff -
+```
 
 ## Compatibility
 
