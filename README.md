@@ -4,7 +4,7 @@ Enhance video with AV-Viewer in combination with this EDOF filter (Extended Dept
 
 ## Key Features
 
-1. Increases perceived depth of field: Makes foreground and background elements appear sharper and in focus compared to a standard filter.
+1. Increases perceived depth of field: Makes foreground and background elements appear sharper and in focus.
 2. Improved image clarity: Enhances details and textures across the entire image.
 3. Compatible with various lenses: Works with lenses designed for narrow focus areas, like microscope objectives or telephoto lenses.
 
