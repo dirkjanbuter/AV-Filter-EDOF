@@ -47,7 +47,7 @@ You may copy, distribute and modify the software as long as you track changes/da
 
 ## Contribution
 
-Contributing a video & audio filter in C requires code clarity, modularity, error handling, and performance optimization. Follow coding standards, use common data types, define formats, write documentation and tests, and manage resources well. Consider security, minimize dependencies, and contribute to the community.
+Contributing this video filter in C requires code clarity, modularity, error handling, and performance optimization. Follow coding standards, use common data types, define formats, write documentation and tests, and manage resources well. Consider security, minimize dependencies, and contribute to the community.
 
 ## Additional Notes
 
