@@ -21,7 +21,7 @@ static int _j = 0;
 static int _t = 0;
 static int _tl = LAYERS_NUM;
 static IMGBUFFER _backbuffer;
-static IMGBUFFER _colorbuffer[LAYERS_NUM];
+static IMGBUFFER _colorbuffer;
 static long *_layerNumber;
 static int *_pixelNumber;
 static int _first = TRUE;
@@ -64,12 +64,9 @@ void draw(char *text)
 
 	if(_first)
 	{
-		for(_t = 0; _t < _tl; _t++)
-		{
-			imgbuffer_create(&_colorbuffer[_t]);
-			imgbuffer_new(&_colorbuffer[_t], _w, _h);
-			imgbuffer_clearcolor(&_colorbuffer[_t], 0xff000000);
-		}
+		imgbuffer_create(&_colorbuffer);
+		imgbuffer_new(&_colorbuffer, _w, _h);
+		imgbuffer_clearcolor(&_colorbuffer, 0xff000000);
 		imgbuffer_clearcolor(&_backbuffer, 0xff000000);
 
 		_layerNumber = (unsigned long*)malloc(_s * sizeof(unsigned long) * 3);
@@ -85,33 +82,21 @@ void draw(char *text)
 	
 	for(_j = 1; _j < _h-2; _j++) for(_i = 1; _i < _w-2; _i++)
 	{			
-		for(int p = 0; p < PACK_NUM; p++)
+		for(int p = 0; p < PACK_NUM*2; p+=2)
 		{	
-			imgbuffer_getpixel(&tempBuffer, _i+_pack[p], _j+_pack[p], &tr, &tg, &tb, &talpha);
-			pr[p] = tr;
-			pg[p] = tg;
-			pb[p] = tb;
+			imgbuffer_getpixel(&tempBuffer, _i+_pack[p], _j+_pack[p+1], &tr, &tg, &tb, &talpha);
+            		
+			pr[p/2] = tr;
+			pg[p/2] = tg;
+			pb[p/2] = tb;
 		}
 
 		imgbuffer_getpixel(&tempBuffer, _i, _j, &tr, &tg, &tb, &talpha);
+		unsigned char gray = (unsigned char)(0.1 * tr + 0.6 * tg + 0.3 * tb);
 		
 		fr = 0;
 		fg = 0;
-		fb = 0;		
-
-		for(int p = 0; p < PACK_NUM; p++)
-		{
-			if(
-				(tr > pr[p] || tg > pg[p] || tb > pb[p])					
-			)
-			{
-				fr += abs(tr - pr[p]);
-				fg += abs(tg - pg[p]);
-				fb += abs(tb - pb[p]);		
-			}
-		}
-
-/*
+		fb = 0;
 		for(int p = 0; p < PACK_NUM; p++)
 		{
 			if(
@@ -133,33 +118,31 @@ void draw(char *text)
 				fb += abs(tb - pb[p]);		
 			}
 		}
-
-*/
+		
+		
 		if( fr > _layerNumber[(_j*_w+_i)*3+0] )
 		{				
 			unsigned int di = (_j*_w+_i)*4;
 			_layerNumber[(_j*_w+_i)*3+0] = fr;
-			_colorbuffer[0].data[di+1] = tr;
+			_colorbuffer.data[di+1] = tr;
 		}
 		if( fg > _layerNumber[(_j*_w+_i)*3+1] )
 		{				
 			unsigned int di = (_j*_w+_i)*4;
 			_layerNumber[(_j*_w+_i)*3+1] = fg;
-			_colorbuffer[0].data[di+2] = tg;
+			_colorbuffer.data[di+2] = tg;
 		}
 		if( fb > _layerNumber[(_j*_w+_i)*3+2] )
 		{				
 			unsigned int di = (_j*_w+_i)*4;
 			_layerNumber[(_j*_w+_i)*3+2] = fb;
-			_colorbuffer[0].data[di+3] = tb;
+			_colorbuffer.data[di+3] = tb;
 		}
+
 	}
 	
-	imgbuffer_clearcolor(&_backbuffer, 0xff000000);
-	for(_t = 0; _t < _tl; _t++)
-	{
-		imgbuffer_blend(&_backbuffer, &_colorbuffer[_t], 0, 0, 0xff, 0xff, 0xff, 0xff);
-	}		
+	
+	imgbuffer_blend(&_backbuffer, &_colorbuffer, 0, 0, 0xff, 0xff, 0xff, 0xff);		
 	
 	imgbuffer_destroy(&tempBuffer);
 	if(_first)
@@ -183,10 +166,7 @@ void filterdestroy()
 
 	if(!_first)
 	{
-		for(_t = 0; _t < _tl; _t++)
-		{
- 			imgbuffer_destroy(&_colorbuffer[_t]);
- 		}
+		imgbuffer_destroy(&_colorbuffer);
 	}
 }
 
