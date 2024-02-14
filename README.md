@@ -37,7 +37,7 @@ make
 
 List the specific versions of AV-Viewer this plugin is compatible with:
 
-* AV-Viewer 1.0
+* [AV-Viewer 1.0](https://github.com/dirkjanbuter/AV-Viewer)
 
 ## GNU General Public License v3 (GPL-3)
 
