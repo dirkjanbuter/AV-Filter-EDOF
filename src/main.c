@@ -255,7 +255,6 @@ void filterdestroy()
 	}
 }
 
-
 int filtervideo(unsigned char *buffer, int w, int h, unsigned int color, char *text, int64_t framecount)
 {
     _w = w;
