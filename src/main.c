@@ -47,8 +47,9 @@ static int _pack[] = {
 	2,2
 };
 
-#define QUAT 2
-#define DEPTH_LEVELS 4
+#define BLOCK 10
+#define DEPTH_LEVELS 3
+#define SENSITIVITY 8
 static int _depthW[DEPTH_LEVELS];
 static int _depthH[DEPTH_LEVELS];
 static int _depthS[DEPTH_LEVELS];
@@ -65,15 +66,20 @@ void depthRecursive(int g, int a, int b)
 	unsigned char tb;
 	unsigned char talpha;
 	
+	if(g >= DEPTH_LEVELS)
+	{
+		return;
+	}
 
 	if(g > 0)
 	{
-		for(x = 0; x < QUAT; x++) for(y = 0; y < QUAT; y++)
+		for(x = 0; x < BLOCK; x++) for(y = 0; y < BLOCK; y++)
 		{
-			int sx = a*QUAT + x; 
-			int sy = b*QUAT + y;
+			int sx = a*BLOCK + x; 
+			int sy = b*BLOCK + y;
 			int di = sy * _depthW[g] + sx;
-			if(abs(_depthF[g][di] - _depthL[g][di]) > 0)
+									
+			if(di < _depthS[g] && abs(_depthF[g][di] - _depthL[g][di]) > SENSITIVITY)
 			{
 				
 				_depthL[g][di] = _depthF[g][di];
@@ -85,28 +91,31 @@ void depthRecursive(int g, int a, int b)
 	}					
 	else	
 	{
-		for(x = 0; x < QUAT; x++) for(y = 0; y < QUAT; y++)
+		for(x = 0; x < BLOCK; x++) for(y = 0; y < BLOCK; y++)
 		{
-			int sx = a*QUAT + x; 
-			int sy = b*QUAT + y;
+			int sx = a*BLOCK + x; 
+			int sy = b*BLOCK + y;
 			int di = sy * _depthW[0] + sx;
 			int conF = 0;
-								
-			for(int p = 0; p < PACK_NUM*2; p+=2)
-			{	
-				int diCur = (sy+_pack[p+1]) * _depthW[g] + (sx+_pack[p]);
-				if(diCur >= 0 && diCur < _depthS[g])
-				{
-					conF += abs(_depthF[g][di] - _depthF[g][diCur]);
-				}
-			}
-						
-			if(conF > _contrastL[di])
+			
+			if(di < _depthS[g])
 			{
-				_contrastL[di] = conF;
-				_depthL[g][di] = _depthF[g][di];
-				imgbuffer_getpixel(&_tempBuffer, sx, sy, &tr, &tg, &tb, &talpha);
-				imgbuffer_setpixel(&_colorbuffer, sx, sy, tr, tg, tb, 0xff);
+				for(int p = 0; p < PACK_NUM*2; p+=2)
+				{	
+					int diCur = (sy+_pack[p+1]) * _depthW[g] + (sx+_pack[p]);
+					if(diCur >= 0 && diCur < _depthS[g])
+					{
+						conF += abs(_depthF[g][di] - _depthF[g][diCur]);
+					}
+				}
+							
+				if(conF > _contrastL[di])
+				{
+					_contrastL[di] = conF;
+					_depthL[g][di] = _depthF[g][di];
+					imgbuffer_getpixel(&_tempBuffer, sx, sy, &tr, &tg, &tb, &talpha);
+					imgbuffer_setpixel(&_colorbuffer, sx, sy, tr, tg, tb, 0xff);
+				}
 			}
 		}	
 	}
@@ -150,8 +159,8 @@ void draw(char *text)
 
 		for(g = 1; g < DEPTH_LEVELS; g++)
 		{
-			_depthW[g] = _w / (QUAT*g);
-			_depthH[g] = _h / (QUAT*g);
+			_depthW[g] = _w / (BLOCK*g);
+			_depthH[g] = _h / (BLOCK*g);
 			_depthS[g] = _depthW[g] * _depthH[g];
 			_depthL[g] = (int*)malloc(_depthS[g]*sizeof(int));
 			_depthF[g] = (int*)malloc(_depthS[g]*sizeof(int));		
@@ -186,7 +195,7 @@ void draw(char *text)
 	for(x = 0; x < _depthW[0]; x++) for(y = 0; y < _depthH[0]; y++)
 	{			
 		imgbuffer_getpixel(&_tempBuffer, x, y, &tr, &tg, &tb, &talpha);
-		_depthF[0][y * _depthW[0] + x] = 0.1 * tr + 0.6 * tg + 0.3 * tb;
+		_depthF[0][y * _depthW[0] + x] = tr+tg+tb;//0.1 * tr + 0.6 * tg + 0.3 * tb;
 	}	
 
 	// sub
@@ -199,7 +208,7 @@ void draw(char *text)
 		
 		for(x = 0; x < _depthW[g]; x++) for(y = 0; y < _depthH[g]; y++)
 		{			
-			_depthF[g+1][(y/QUAT) * _depthW[g+1] + (x/QUAT)] += _depthF[0][y * _depthW[g] + x];
+			_depthF[g+1][(y/BLOCK) * _depthW[g+1] + (x/BLOCK)] += _depthF[0][y * _depthW[g] + x];
 		}
 	}
 	
@@ -230,10 +239,19 @@ int filtercreate(int fps)
 
 void filterdestroy()
 {
+	int g;
 
 	if(!_first)
 	{
-		imgbuffer_destroy(&_colorbuffer);
+
+		imgbuffer_destroy(&_colorbuffer);		
+		
+		for(g = 0; g < DEPTH_LEVELS; g++)
+		{
+			free(_depthL[g]);
+			free(_depthF[g]);		
+		}
+		free(_contrastL);		
 	}
 }
 
