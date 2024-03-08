@@ -270,8 +270,6 @@ int filtervideo(unsigned char *buffer, int w, int h, unsigned int color, char *t
     _backbuffer.h = _h;
     _backbuffer.s = _sizebytes;
 
-    srand(_framecount);
-
     draw(text);
 
     return 1;
