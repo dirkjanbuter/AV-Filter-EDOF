@@ -3,9 +3,7 @@
 
 #include "imgbuffer.h"
 
-#define PACK_NUM 8
-#define LAYERS_NUM 1
-#define SHARP_NUM 0xff
+#define PACK_NUM 24
 
 static int _w = 0;
 static int _h = 0;
@@ -18,29 +16,106 @@ static int _sizebytes = 0;
 static int _i = 0;
 static int _j = 0;
 
-static int _t = 0;
-static int _tl = LAYERS_NUM;
 static IMGBUFFER _backbuffer;
 static IMGBUFFER _colorbuffer;
-static long *_layerNumber;
-static int *_pixelNumber;
 static int _first = TRUE;
 
 static int _pack[] = {
-	-1, -1,
-	 0, -1,
-	 1, -1,
-	-1,  0,
-	 1,  0,
-	-1,  1,
-	 0,  1,
-	 1,  1,
+	-2,-2,
+	-2,-1,
+	-2,0,
+	-2,1,
+	-2,2,
+	-1,-2,
+	-1,-1,
+	-1,0,
+	-1,1,
+	-1,2,
+	0,-2,
+	0,-1,
+	0,1,
+	0,2,
+	1,-2,
+	1,-1,
+	1,0,
+	1,1,
+	1,2,
+	2,-2,
+	2,-1,
+	2,0,
+	2,1,
+	2,2
 };
 
+#define QUAT 2
+#define DEPTH_LEVELS 4
+static int _depthW[DEPTH_LEVELS];
+static int _depthH[DEPTH_LEVELS];
+static int _depthS[DEPTH_LEVELS];
+static int *_depthL[DEPTH_LEVELS];
+static int *_depthF[DEPTH_LEVELS];
+static int *_contrastL;
+static IMGBUFFER _tempBuffer;
 
+void depthRecursive(int g, int a, int b)
+{
+	int x, y;
+	unsigned char tr;
+	unsigned char tg;
+	unsigned char tb;
+	unsigned char talpha;
+	
+
+	if(g > 0)
+	{
+		for(x = 0; x < QUAT; x++) for(y = 0; y < QUAT; y++)
+		{
+			int sx = a*QUAT + x; 
+			int sy = b*QUAT + y;
+			int di = sy * _depthW[g] + sx;
+			if(abs(_depthF[g][di] - _depthL[g][di]) > 0)
+			{
+				
+				_depthL[g][di] = _depthF[g][di];
+				
+				depthRecursive(g-1, sx, sy);
+				
+			}	
+		}		
+	}					
+	else	
+	{
+		for(x = 0; x < QUAT; x++) for(y = 0; y < QUAT; y++)
+		{
+			int sx = a*QUAT + x; 
+			int sy = b*QUAT + y;
+			int di = sy * _depthW[0] + sx;
+			int conF = 0;
+								
+			for(int p = 0; p < PACK_NUM*2; p+=2)
+			{	
+				int diCur = (sy+_pack[p+1]) * _depthW[g] + (sx+_pack[p]);
+				if(diCur >= 0 && diCur < _depthS[g])
+				{
+					conF += abs(_depthF[g][di] - _depthF[g][diCur]);
+				}
+			}
+						
+			if(conF > _contrastL[di])
+			{
+				_contrastL[di] = conF;
+				_depthL[g][di] = _depthF[g][di];
+				imgbuffer_getpixel(&_tempBuffer, sx, sy, &tr, &tg, &tb, &talpha);
+				imgbuffer_setpixel(&_colorbuffer, sx, sy, tr, tg, tb, 0xff);
+			}
+		}	
+	}
+}
+
+			
 void draw(char *text)
 {	
-	IMGBUFFER tempBuffer;
+	
 	unsigned char tr;
 	unsigned char tg;
 	unsigned char tb;
@@ -57,94 +132,87 @@ void draw(char *text)
 	long fg;
 	long fb;
 	long falpha;
+	int a, b, c, d, i, j, x, y, g, h;
 
-	imgbuffer_create(&tempBuffer);
-	imgbuffer_new(&tempBuffer, _w, _h);
-	imgbuffer_clearcolor(&tempBuffer, 0xff000000);
-
+	imgbuffer_create(&_tempBuffer);
+	imgbuffer_new(&_tempBuffer, _w, _h);
+	imgbuffer_clearcolor(&_tempBuffer, 0xff000000);
+        imgbuffer_copy(&_tempBuffer, &_backbuffer);
+	
 	if(_first)
 	{
+		_depthW[0] = _w;
+		_depthH[0] = _h;
+		_depthS[0] = _depthW[0] * _depthH[0];
+		_depthL[0] = (int*)malloc(_depthS[0]*sizeof(int));
+		_depthF[0] = (int*)malloc(_depthS[0]*sizeof(int));
+		_contrastL = (int*)malloc(_depthS[0]*sizeof(int));		
+
+		for(g = 1; g < DEPTH_LEVELS; g++)
+		{
+			_depthW[g] = _w / (QUAT*g);
+			_depthH[g] = _h / (QUAT*g);
+			_depthS[g] = _depthW[g] * _depthH[g];
+			_depthL[g] = (int*)malloc(_depthS[g]*sizeof(int));
+			_depthF[g] = (int*)malloc(_depthS[g]*sizeof(int));		
+		}
+		
+		// gray
+		for(x = 0; x < _depthW[0]; x++) for(y = 0; y < _depthH[0]; y++)
+		{			
+			imgbuffer_getpixel(&_tempBuffer, x, y, &tr, &tg, &tb, &talpha);
+			_depthL[0][y * _depthW[0] + x] = 0;
+			_contrastL[y * _depthW[0] + x] = -999999;
+		}	
+
+		// sub
+		for(g = 0; g < DEPTH_LEVELS-1; g++)
+		{
+			for(x = 0; x < _depthW[g+1]; x++) for(y = 0; y < _depthH[g+1]; y++)
+			{			
+				_depthL[g+1][y * _depthW[g+1] + x] = 0;
+			}
+		}
+			
 		imgbuffer_create(&_colorbuffer);
 		imgbuffer_new(&_colorbuffer, _w, _h);
 		imgbuffer_clearcolor(&_colorbuffer, 0xff000000);
 		imgbuffer_clearcolor(&_backbuffer, 0xff000000);
-
-		_layerNumber = (unsigned long*)malloc(_s * sizeof(unsigned long) * 3);
-		memset(_layerNumber, 0, _s * sizeof(unsigned long) * 3);
-		
-		_pixelNumber = (int *)malloc(_s * sizeof(int) * _tl);
-		memset(_pixelNumber, 0, _s * sizeof(int) * _tl);
-
-	
 	}
 	
-	imgbuffer_copy(&tempBuffer, &_backbuffer);
 	
-	for(_j = 1; _j < _h-2; _j++) for(_i = 1; _i < _w-2; _i++)
+	
+	// gray
+	for(x = 0; x < _depthW[0]; x++) for(y = 0; y < _depthH[0]; y++)
 	{			
-		for(int p = 0; p < PACK_NUM*2; p+=2)
-		{	
-			imgbuffer_getpixel(&tempBuffer, _i+_pack[p], _j+_pack[p+1], &tr, &tg, &tb, &talpha);
-            		
-			pr[p/2] = tr;
-			pg[p/2] = tg;
-			pb[p/2] = tb;
-		}
+		imgbuffer_getpixel(&_tempBuffer, x, y, &tr, &tg, &tb, &talpha);
+		_depthF[0][y * _depthW[0] + x] = 0.1 * tr + 0.6 * tg + 0.3 * tb;
+	}	
 
-		imgbuffer_getpixel(&tempBuffer, _i, _j, &tr, &tg, &tb, &talpha);
-		unsigned char gray = (unsigned char)(0.1 * tr + 0.6 * tg + 0.3 * tb);
-		
-		fr = 0;
-		fg = 0;
-		fb = 0;
-		for(int p = 0; p < PACK_NUM; p++)
-		{
-			if(
-				(tr > pr[p])					
-			)
-			{
-				fr += abs(tr - pr[p]);
-			}
-			if(
-				(tg > pg[p])					
-			)
-			{
-				fg += abs(tg - pg[p]);
-			}
-			if(
-				(tb > pb[p])					
-			)
-			{
-				fb += abs(tb - pb[p]);		
-			}
+	// sub
+	for(g = 0; g < DEPTH_LEVELS-1; g++)
+	{
+		for(x = 0; x < _depthW[g+1]; x++) for(y = 0; y < _depthH[g+1]; y++)
+		{			
+			_depthF[g+1][y * _depthW[g+1] + x] = 0;
 		}
 		
-		
-		if( fr > _layerNumber[(_j*_w+_i)*3+0] )
-		{				
-			unsigned int di = (_j*_w+_i)*4;
-			_layerNumber[(_j*_w+_i)*3+0] = fr;
-			_colorbuffer.data[di+1] = tr;
+		for(x = 0; x < _depthW[g]; x++) for(y = 0; y < _depthH[g]; y++)
+		{			
+			_depthF[g+1][(y/QUAT) * _depthW[g+1] + (x/QUAT)] += _depthF[0][y * _depthW[g] + x];
 		}
-		if( fg > _layerNumber[(_j*_w+_i)*3+1] )
-		{				
-			unsigned int di = (_j*_w+_i)*4;
-			_layerNumber[(_j*_w+_i)*3+1] = fg;
-			_colorbuffer.data[di+2] = tg;
-		}
-		if( fb > _layerNumber[(_j*_w+_i)*3+2] )
-		{				
-			unsigned int di = (_j*_w+_i)*4;
-			_layerNumber[(_j*_w+_i)*3+2] = fb;
-			_colorbuffer.data[di+3] = tb;
-		}
-
 	}
 	
+	g = DEPTH_LEVELS-1;
+	for(x = 0; x < _depthW[g]; x++) for(y = 0; y < _depthH[g]; y++)
+	{
+		depthRecursive(g-1, x, y);
+	}
 	
-	imgbuffer_blend(&_backbuffer, &_colorbuffer, 0, 0, 0xff, 0xff, 0xff, 0xff);		
+	imgbuffer_copy(&_backbuffer, &_colorbuffer);
 	
-	imgbuffer_destroy(&tempBuffer);
+	imgbuffer_destroy(&_tempBuffer);
+	
 	if(_first)
 	{
 		_first = FALSE;
@@ -162,7 +230,6 @@ int filtercreate(int fps)
 
 void filterdestroy()
 {
-	free(_layerNumber);	
 
 	if(!_first)
 	{
