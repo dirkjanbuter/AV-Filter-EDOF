@@ -15,10 +15,20 @@ Enhance video with AV-Viewer in combination with this EDOF filter (Extended Dept
 3. Restart your AV-Viewer application.
 
 ```bash
-mkdir build
-git clone git@github.com:dirkjanbuter/AV-Filter-EDOF.git
+apt install git make libpng-dev libswscale-dev libavcodec-dev libavformat-dev libsdl2-dev
+cd build
+git clone https://github.com/dirkjanbuter/AV-Filter-EDOF.git
+git clone https://github.com/dirkjanbuter/AV-Viewer.git
+git clone https://github.com/dirkjanbuter/AV-Filter-Player.git
 cd AV-Filter-EDOF
 make
+cd ..
+cd AV-Viewer
+make
+ce ..
+cd AV-Filter-Player
+make
+cd ..
 ```
 
 ## Usage
@@ -28,11 +38,11 @@ make
 3. Preview the changes in real-time to visualize the impact on your AV content.
 
 ```bash
-cd ../build
+cd build
 ./av-viewer 640 360 30 ./filter_edof.so ffffffff -
 ```
 ```bash
-./av-viewer 640 360 30 ./filter_player.so ffffffff filename.mp4 ./filter_edof.so ffffffff -
+./av-viewer 640 360 30 ./filter_player.so ffffffff input.mp4 ./filter_edof.so ffffffff -
 ```
 
 ## Compatibility
