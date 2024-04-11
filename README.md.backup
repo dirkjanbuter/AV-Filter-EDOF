@@ -17,7 +17,7 @@ Enhance video with AV-Viewer in combination with this EDOF filter (Extended Dept
 ```bash
 sudo apt update
 sudo apt install git make libpng-dev libswscale-dev libavcodec-dev libavformat-dev libsdl2-dev
-mkdir build
+cd build
 git clone https://github.com/dirkjanbuter/AV-Filter-EDOF.git
 git clone https://github.com/dirkjanbuter/AV-Viewer.git
 git clone https://github.com/dirkjanbuter/AV-Filter-Player.git
