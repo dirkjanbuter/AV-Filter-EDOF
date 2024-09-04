@@ -52,9 +52,9 @@ List the specific versions of AV-Viewer this plugin is compatible with:
 
 * [AV-Viewer 1.0](https://github.com/dirkjanbuter/AV-Viewer)
 
-## GNU General Public License v3 (GPL-3)
+## GNU AFFERO GENERAL PUBLIC LICENSE
 
-You may copy, distribute and modify the software as long as you track changes/dates in source files. Any modifications to or software including (via compiler) GPL-licensed code must also be made available under the GPL along with build & install instructions.
+You may copy, distribute and modify the software as long as you track changes/dates in source files. Any modifications to or software including (via compiler) GPL-licensed code must also be made available under the AGPL along with build & install instructions.
 
 ## Contribution
 
